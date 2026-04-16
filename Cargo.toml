@@ -3,5 +3,20 @@ name = "pet_king5_bevy"
 version = "0.1.0"
 edition = "2024"
 
+# 在开发配置文件中启用少量优化。
+[profile.dev]
+opt-level = 1
+
+# 为依赖项在开发配置文件中启用大量优化。
+[profile.dev.package."*"]
+opt-level = 3
+
+# 在发布配置文件中启用更多优化,以增加编译时间为代价。
+[profile.release]
+# 将整个 crate 编译为一个单元。
+codegen-units = 1
+# 对整个程序(包括依赖项)进行第二轮优化。
+lto = "thin"
+
 [dependencies]
 bevy = "0.18.1"
