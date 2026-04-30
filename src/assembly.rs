@@ -3,7 +3,7 @@ use bevy::{
     state::{app::AppExtStates, state::OnEnter},
 };
 
-use crate::game::core::AppState;
+use crate::game::core::app_state::AppState;
 use crate::{engine::EnginePlugin, game::GamePlugin};
 
 pub struct GameAssemblyPlugin;
