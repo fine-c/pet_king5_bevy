@@ -1,5 +1,6 @@
 use bevy::{
     app::{App, Plugin},
+    camera::Camera2d,
     ecs::{
         component::Component,
         schedule::{InternedScheduleLabel, ScheduleLabel},
@@ -7,14 +8,17 @@ use bevy::{
     },
 };
 
-#[derive(Component)]
-pub struct Cream;
+use crate::engine::position::Position;
 
-pub struct CreamPlugin {
+#[derive(Component)]
+#[require(Camera2d, Position)]
+pub struct MainCamera;
+
+pub struct CameraPlugin {
     spawn_schedule: InternedScheduleLabel,
 }
 
-impl CreamPlugin {
+impl CameraPlugin {
     pub fn new(spawn_schedule: impl ScheduleLabel) -> Self {
         Self {
             spawn_schedule: spawn_schedule.intern(),
@@ -22,12 +26,12 @@ impl CreamPlugin {
     }
 }
 
-impl Plugin for CreamPlugin {
+impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(self.spawn_schedule, spawn_cream);
+        app.add_systems(self.spawn_schedule, spawn_camera);
     }
 }
 
-fn spawn_cream(mut commands: Commands) {
-    commands.spawn(Cream);
+fn spawn_camera(mut commands: Commands) {
+    commands.spawn((MainCamera, Position::new(640.0 / 2.0, 640.0 / 2.0)));
 }
