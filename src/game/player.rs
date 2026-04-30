@@ -17,6 +17,7 @@ use bevy::{
 };
 
 use crate::engine::position::Position;
+use crate::game::core::camera_target::CameraTarget;
 
 const PLAYER_Z: f32 = 3.;
 const PLAYER_SPEED: f32 = 83.3;
@@ -58,6 +59,7 @@ fn spawn_player(
 
     commands.spawn((
         Player,
+        CameraTarget,
         Mesh2d(mesh),
         MeshMaterial2d(material),
         Transform::from_xyz(0., 0., PLAYER_Z),
