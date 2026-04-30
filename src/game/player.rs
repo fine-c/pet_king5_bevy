@@ -6,17 +6,25 @@ use bevy::{
         component::Component,
         query::With,
         schedule::{InternedScheduleLabel, ScheduleLabel},
-        system::{Commands, Query, Res, ResMut},
+        system::{Commands, Res, ResMut, Single},
     },
-    image::Image,
     input::{ButtonInput, keyboard::KeyCode},
-    math::Vec2,
-    sprite::Sprite,
+    math::{Vec2, primitives::Rectangle},
+    mesh::{Mesh, Mesh2d},
+    sprite_render::{ColorMaterial, MeshMaterial2d},
     time::Time,
     transform::components::Transform,
 };
 
+use crate::engine::position::Position;
+
+const PLAYER_Z: f32 = 3.;
+const PLAYER_SPEED: f32 = 83.3;
+const PLAYER_COLOR: Color = Color::srgb(1.0, 0.8, 0.);
+const PLAYER_SHAPE: Rectangle = Rectangle::new(40., 40.);
+
 #[derive(Component)]
+#[require(Position)]
 pub struct Player;
 
 pub struct PlayerPlugin {
@@ -33,8 +41,6 @@ impl PlayerPlugin {
     }
 }
 
-const PLAYER_SPEED: f32 = 200.0;
-
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(self.spawn_schedule, spawn_player)
@@ -42,30 +48,27 @@ impl Plugin for PlayerPlugin {
     }
 }
 
-fn spawn_player(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
-    let image_handle = images.add(Image::default());
+fn spawn_player(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    let mesh = meshes.add(Mesh::from(PLAYER_SHAPE));
+    let material = materials.add(ColorMaterial::from(PLAYER_COLOR));
 
     commands.spawn((
-        Sprite {
-            color: Color::srgb(1.0, 0.8, 0.0),
-            custom_size: Some(Vec2::new(32.0, 32.0)),
-            image: image_handle,
-            ..Default::default()
-        },
-        Transform::from_xyz(320.0, 320.0, 1.0),
         Player,
+        Mesh2d(mesh),
+        MeshMaterial2d(material),
+        Transform::from_xyz(0., 0., PLAYER_Z),
     ));
 }
 
 fn move_player(
     input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
-    mut query: Query<&mut Transform, With<Player>>,
+    mut position: Single<&mut Position, With<Player>>,
 ) {
-    let Some(mut transform) = query.iter_mut().next() else {
-        return;
-    };
-
     let mut direction = Vec2::ZERO;
     if input.pressed(KeyCode::ArrowUp) || input.pressed(KeyCode::KeyW) {
         direction.y += 1.0;
@@ -81,5 +84,5 @@ fn move_player(
     }
 
     direction = direction.normalize_or_zero();
-    transform.translation += (direction * PLAYER_SPEED * time.delta_secs()).extend(0.0);
+    position.0 += direction * PLAYER_SPEED * time.delta_secs();
 }
