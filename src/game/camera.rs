@@ -1,6 +1,6 @@
 use bevy::{
     app::{App, Plugin, PostUpdate},
-    camera::Camera2d,
+    camera::{Camera2d, OrthographicProjection, Projection, ScalingMode},
     ecs::{
         component::Component,
         query::{With, Without},
@@ -39,7 +39,15 @@ impl Plugin for CameraPlugin {
 }
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn(MainCamera);
+    commands.spawn((
+        MainCamera,
+        Projection::Orthographic(OrthographicProjection {
+            scaling_mode: ScalingMode::FixedVertical {
+                viewport_height: 360.,
+            },
+            ..OrthographicProjection::default_2d()
+        }),
+    ));
 }
 
 fn apply_camera_target_position(
