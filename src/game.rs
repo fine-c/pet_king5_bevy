@@ -13,7 +13,6 @@ pub mod world;
 pub struct GamePlugin {
     world_spawn: InternedScheduleLabel,
     player_spawn: InternedScheduleLabel,
-    player_input: InternedScheduleLabel,
     camera_spawn: InternedScheduleLabel,
 }
 
@@ -21,13 +20,11 @@ impl GamePlugin {
     pub fn new(
         world_spawn: impl ScheduleLabel,
         player_spawn: impl ScheduleLabel,
-        player_input: impl ScheduleLabel,
         camera_spawn: impl ScheduleLabel,
     ) -> Self {
         Self {
             world_spawn: world_spawn.intern(),
             player_spawn: player_spawn.intern(),
-            player_input: player_input.intern(),
             camera_spawn: camera_spawn.intern(),
         }
     }
@@ -38,7 +35,7 @@ impl Plugin for GamePlugin {
         app.add_plugins((
             WorldPlugin::new(self.world_spawn),
             CameraPlugin::new(self.camera_spawn),
-            PlayerPlugin::new(self.player_spawn, self.player_input),
+            PlayerPlugin::new(self.player_spawn),
         ));
     }
 }

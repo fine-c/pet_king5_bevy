@@ -1,5 +1,5 @@
 use bevy::{
-    app::{App, Plugin},
+    app::{App, Plugin, Update},
     asset::Assets,
     color::Color,
     ecs::{
@@ -30,14 +30,12 @@ pub struct Player;
 
 pub struct PlayerPlugin {
     spawn_schedule: InternedScheduleLabel,
-    input_schedule: InternedScheduleLabel,
 }
 
 impl PlayerPlugin {
-    pub fn new(spawn_schedule: impl ScheduleLabel, input_schedule: impl ScheduleLabel) -> Self {
+    pub fn new(spawn_schedule: impl ScheduleLabel) -> Self {
         Self {
             spawn_schedule: spawn_schedule.intern(),
-            input_schedule: input_schedule.intern(),
         }
     }
 }
@@ -45,7 +43,7 @@ impl PlayerPlugin {
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(self.spawn_schedule, spawn_player)
-            .add_systems(self.input_schedule, move_player);
+            .add_systems(Update, move_player);
     }
 }
 

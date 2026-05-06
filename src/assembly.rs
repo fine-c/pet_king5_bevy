@@ -1,5 +1,5 @@
 use bevy::{
-    app::{App, Plugin, Update},
+    app::{App, Plugin},
     state::{app::AppExtStates, state::OnEnter},
 };
 
@@ -15,7 +15,6 @@ impl Plugin for GameAssemblyPlugin {
             GamePlugin::new(
                 OnEnter(AppState::InGame),
                 OnEnter(AppState::InGame),
-                Update,
                 OnEnter(AppState::InGame),
             ),
         ))
