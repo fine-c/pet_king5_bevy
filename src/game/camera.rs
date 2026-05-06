@@ -5,7 +5,7 @@ use bevy::{
         component::Component,
         query::{With, Without},
         schedule::{InternedScheduleLabel, ScheduleLabel},
-        system::{Commands, Query},
+        system::{Commands, Single},
     },
 };
 
@@ -43,14 +43,8 @@ fn spawn_camera(mut commands: Commands) {
 }
 
 fn apply_camera_target_position(
-    target: Query<&Position, (With<CameraTarget>, Without<MainCamera>)>,
-    mut camera: Query<&mut Position, (With<MainCamera>, Without<CameraAnchored>)>,
+    target_pos: Single<&Position, (With<CameraTarget>, Without<MainCamera>)>,
+    mut camera_pos: Single<&mut Position, (With<MainCamera>, Without<CameraAnchored>)>,
 ) {
-    let Ok(target_pos) = target.single() else {
-        return;
-    };
-    let Ok(mut cam_pos) = camera.single_mut() else {
-        return;
-    };
-    cam_pos.0 = target_pos.0;
+    camera_pos.0 = target_pos.0;
 }
