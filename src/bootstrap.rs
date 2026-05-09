@@ -5,6 +5,7 @@ use bevy::{
     utils::default,
     window::{MonitorSelection, Window, WindowMode, WindowPlugin},
 };
+use bevy_aseprite_ultra::AsepriteUltraPlugin;
 
 pub struct AppBootstrapPlugin;
 
@@ -21,6 +22,7 @@ impl Plugin for AppBootstrapPlugin {
                     }),
                     ..default()
                 }),
-        );
+        )
+        .add_plugins(AsepriteUltraPlugin);
     }
 }
