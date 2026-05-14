@@ -11,7 +11,7 @@
 	"iid": "43922c60-21a0-11f1-bacd-0d37ddc4a1a6",
 	"jsonVersion": "1.5.3",
 	"appBuildId": 473703,
-	"nextUid": 9,
+	"nextUid": 10,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "Free",
@@ -181,7 +181,43 @@
 			"tilePivotY": 0,
 			"biomeFieldUid": null
 		}
-	], "entities": [], "tilesets": [
+	], "entities": [
+		{
+			"identifier": "Player",
+			"uid": 9,
+			"tags": [],
+			"exportToToc": false,
+			"allowOutOfBounds": false,
+			"doc": null,
+			"width": 20,
+			"height": 20,
+			"resizableX": false,
+			"resizableY": false,
+			"minWidth": null,
+			"maxWidth": null,
+			"minHeight": null,
+			"maxHeight": null,
+			"keepAspectRatio": false,
+			"tileOpacity": 1,
+			"fillOpacity": 1,
+			"lineOpacity": 1,
+			"hollow": false,
+			"color": "#BE4A2F",
+			"renderMode": "Rectangle",
+			"showName": true,
+			"tilesetId": null,
+			"tileRenderMode": "FitInside",
+			"tileRect": null,
+			"uiTileRect": null,
+			"nineSliceBorders": [],
+			"maxCount": 0,
+			"limitScope": "PerLevel",
+			"limitBehavior": "MoveLastOne",
+			"pivotX": 0,
+			"pivotY": 0,
+			"fieldDefs": []
+		}
+	], "tilesets": [
 		{
 			"__cWid": 10,
 			"__cHei": 76,
@@ -367,7 +403,24 @@
 					"seed": 7124299,
 					"overrideTilesetUid": null,
 					"gridTiles": [],
-					"entityInstances": []
+					"entityInstances": [
+						{
+							"__identifier": "Player",
+							"__grid": [0,0],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#BE4A2F",
+							"iid": "3783b890-48b0-11f1-b608-e96cd5581a61",
+							"width": 20,
+							"height": 20,
+							"defUid": 9,
+							"px": [0,0],
+							"fieldInstances": [],
+							"__worldX": 0,
+							"__worldY": 0
+						}
+					]
 				},
 				{
 					"__identifier": "Structures",

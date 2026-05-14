@@ -2,11 +2,16 @@ use bevy::{
     app::{App, Plugin},
     asset::AssetServer,
     ecs::{
+        bundle::Bundle,
         schedule::{InternedScheduleLabel, ScheduleLabel},
         system::{Commands, Res},
     },
 };
-use bevy_ecs_ldtk::{LdtkPlugin, LdtkWorldBundle, LevelSelection};
+use bevy_ecs_ldtk::{
+    LdtkEntity, LdtkPlugin, LdtkWorldBundle, LevelSelection, app::LdtkEntityAppExt,
+};
+
+use crate::game::core::player_spawn::PlayerMarker;
 
 pub struct WorldPlugin {
     spawn_schedule: InternedScheduleLabel,
@@ -24,8 +29,14 @@ impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(LdtkPlugin)
             .insert_resource(LevelSelection::index(0))
+            .register_ldtk_entity::<PlayerBundle>("Player")
             .add_systems(self.spawn_schedule, setup_world);
     }
+}
+
+#[derive(Bundle, Default, LdtkEntity)]
+struct PlayerBundle {
+    marker: PlayerMarker,
 }
 
 fn setup_world(mut commands: Commands, asset_server: Res<AssetServer>) {

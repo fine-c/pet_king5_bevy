@@ -12,11 +12,7 @@ impl Plugin for GameAssemblyPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             EnginePlugin,
-            GamePlugin::new(
-                OnEnter(AppState::InGame),
-                OnEnter(AppState::InGame),
-                OnEnter(AppState::InGame),
-            ),
+            GamePlugin::new(OnEnter(AppState::InGame), OnEnter(AppState::InGame)),
         ))
         .insert_state(AppState::InGame);
     }

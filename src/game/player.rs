@@ -3,77 +3,81 @@ use bevy::{
     asset::AssetServer,
     ecs::{
         component::Component,
-        schedule::{InternedScheduleLabel, IntoScheduleConfigs, ScheduleLabel},
+        entity::Entity,
+        query::Added,
+        schedule::IntoScheduleConfigs,
         system::{Commands, Res, Single},
     },
     input::{ButtonInput, keyboard::KeyCode},
     math::Vec2,
     sprite::Sprite,
     time::Time,
-    transform::components::Transform,
 };
 use bevy_aseprite_ultra::prelude::{Animation, AseAnimation};
 
 use crate::engine::position::Position;
 use crate::game::core::camera_target::CameraTarget;
+use crate::game::core::player_spawn::PlayerMarker;
 
-const PLAYER_Z: f32 = 3.;
 const DEFAULT_PLAYER_SPEED: f32 = 83.3;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 enum PlayerState {
-    Walk,
+    #[default]
     Stand,
+    Walk,
 }
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Default, PartialEq)]
 enum PlayerDirection {
-    Up,
-    Down,
     Left,
+    Up,
     Right,
+    #[default]
+    Down,
 }
 
 #[derive(Component, Debug)]
 #[require(Position)]
 struct Player {
-    walk_speed: f32,
-    state: PlayerState,
     direction: PlayerDirection,
+    state: PlayerState,
+    walk_speed: f32,
 }
 
-pub struct PlayerPlugin {
-    spawn_schedule: InternedScheduleLabel,
-}
-
-impl PlayerPlugin {
-    pub fn new(spawn_schedule: impl ScheduleLabel) -> Self {
+impl Default for Player {
+    fn default() -> Self {
         Self {
-            spawn_schedule: spawn_schedule.intern(),
+            direction: PlayerDirection::default(),
+            state: PlayerState::default(),
+            walk_speed: DEFAULT_PLAYER_SPEED,
         }
     }
 }
 
+pub struct PlayerPlugin;
+
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(self.spawn_schedule, spawn_player)
-            .add_systems(Update, (control_player, player_animation).chain());
+        app.add_systems(
+            Update,
+            (setup_player, (control_player, player_animation).chain()),
+        );
     }
 }
 
-fn spawn_player(mut commands: Commands, assets_server: Res<AssetServer>) {
-    commands.spawn((
+fn setup_player(
+    mut commands: Commands,
+    assets_server: Res<AssetServer>,
+    entity: Single<Entity, Added<PlayerMarker>>,
+) {
+    commands.entity(*entity).insert((
         AseAnimation {
-            aseprite: assets_server.load("player/0.aseprite"),
             animation: Animation::tag("idle_down"),
+            aseprite: assets_server.load("player/0.aseprite"),
         },
         CameraTarget,
-        Player {
-            walk_speed: DEFAULT_PLAYER_SPEED,
-            state: PlayerState::Stand,
-            direction: PlayerDirection::Down,
-        },
+        Player::default(),
         Sprite::default(),
-        Transform::from_xyz(0., 0., PLAYER_Z),
     ));
 }
 
