@@ -7,9 +7,11 @@ use bevy::{
         schedule::{InternedScheduleLabel, ScheduleLabel},
         system::{Commands, Res, Single},
     },
+    utils::default,
 };
 use bevy_ecs_ldtk::{
-    LdtkEntity, LdtkPlugin, LdtkProjectHandle, LdtkWorldBundle, LevelEvent, LevelSelection,
+    IntGridRendering, LdtkEntity, LdtkPlugin, LdtkProjectHandle, LdtkSettings, LdtkWorldBundle,
+    LevelEvent, LevelSelection,
     app::LdtkEntityAppExt,
     assets::{LdtkProject, LevelMetadataAccessor},
 };
@@ -32,6 +34,10 @@ impl WorldPlugin {
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(LdtkPlugin)
+            .insert_resource(LdtkSettings {
+                int_grid_rendering: IntGridRendering::Invisible,
+                ..default()
+            })
             .insert_resource(LevelSelection::index(0))
             .register_ldtk_entity::<PlayerBundle>("Player")
             .add_systems(self.spawn_schedule, setup_world)

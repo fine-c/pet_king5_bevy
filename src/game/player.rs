@@ -4,22 +4,27 @@ use bevy::{
     ecs::{
         component::Component,
         entity::Entity,
+        hierarchy::Children,
         query::Added,
         schedule::IntoScheduleConfigs,
-        system::{Commands, Res, Single},
+        system::{Commands, Query, Res, Single},
     },
     input::{ButtonInput, keyboard::KeyCode},
-    math::Vec2,
+    math::{Rect, Vec2},
     sprite::Sprite,
     time::Time,
+    transform::components::Transform,
 };
 use bevy_aseprite_ultra::prelude::{Animation, AseAnimation};
 
 use crate::engine::position::Position;
 use crate::game::core::camera_target::CameraTarget;
+use crate::game::core::collision::CollisionRect;
 use crate::game::core::player_spawn::PlayerMarker;
 
 const DEFAULT_PLAYER_SPEED: f32 = 83.3;
+const PLAYER_HALF_SIZE: Vec2 = Vec2::new(9.5, 9.5);
+const SPRITE_OFFSET_Y: f32 = 11.0;
 
 #[derive(Debug, Default, PartialEq)]
 enum PlayerState {
@@ -70,23 +75,28 @@ fn setup_player(
     assets_server: Res<AssetServer>,
     entity: Single<Entity, Added<PlayerMarker>>,
 ) {
-    commands.entity(*entity).insert((
-        AseAnimation {
-            animation: Animation::tag("idle_down"),
-            aseprite: assets_server.load("player/0.aseprite"),
-        },
-        CameraTarget,
-        Player::default(),
-        Sprite::default(),
-    ));
+    commands
+        .entity(*entity)
+        .insert((CameraTarget, Player::default()))
+        .with_children(|parent| {
+            parent.spawn((
+                AseAnimation {
+                    animation: Animation::tag("idle_down"),
+                    aseprite: assets_server.load("player/0.aseprite"),
+                },
+                Sprite::default(),
+                Transform::from_xyz(0.0, SPRITE_OFFSET_Y, 0.0),
+            ));
+        });
 }
 
 fn control_player(
     input: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
-    mut query: Single<(&mut Player, &mut Position)>,
+    mut player: Single<(&mut Player, &mut Position)>,
+    collision_rects: Query<&CollisionRect>,
 ) {
-    let (player, position) = &mut *query;
+    let (player, position) = &mut *player;
 
     if input.just_pressed(KeyCode::ArrowLeft) || input.just_pressed(KeyCode::KeyA) {
         player.direction = PlayerDirection::Left;
@@ -135,23 +145,56 @@ fn control_player(
     } else {
         PlayerState::Walk
     };
-    position.0 += direction * player.walk_speed * time.delta_secs();
+
+    let movement = direction * player.walk_speed * time.delta_secs();
+    position.0 = apply_collision(position.0, movement, &collision_rects);
 }
 
-fn player_animation(mut query: Single<(&mut AseAnimation, &Player)>) {
-    let (ase_animation, player) = &mut *query;
-    match player.state {
-        PlayerState::Stand => match player.direction {
-            PlayerDirection::Left => ase_animation.animation.play_loop("idle_left"),
-            PlayerDirection::Up => ase_animation.animation.play_loop("idle_up"),
-            PlayerDirection::Right => ase_animation.animation.play_loop("idle_right"),
-            PlayerDirection::Down => ase_animation.animation.play_loop("idle_down"),
-        },
-        PlayerState::Walk => match player.direction {
-            PlayerDirection::Left => ase_animation.animation.play_loop("walk_left"),
-            PlayerDirection::Up => ase_animation.animation.play_loop("walk_up"),
-            PlayerDirection::Right => ase_animation.animation.play_loop("walk_right"),
-            PlayerDirection::Down => ase_animation.animation.play_loop("walk_down"),
-        },
+fn apply_collision(pos: Vec2, movement: Vec2, rects: &Query<&CollisionRect>) -> Vec2 {
+    let target_x =
+        Rect::from_center_half_size(Vec2::new(pos.x + movement.x, pos.y), PLAYER_HALF_SIZE);
+    let x = if rects.iter().any(|r| intersects(target_x, r.0)) {
+        pos.x
+    } else {
+        pos.x + movement.x
+    };
+
+    let target_y = Rect::from_center_half_size(Vec2::new(x, pos.y + movement.y), PLAYER_HALF_SIZE);
+    let y = if rects.iter().any(|r| intersects(target_y, r.0)) {
+        pos.y
+    } else {
+        pos.y + movement.y
+    };
+
+    Vec2::new(x, y)
+}
+
+fn intersects(a: Rect, b: Rect) -> bool {
+    let x = a.min.x < b.max.x && a.max.x > b.min.x;
+    let y = a.min.y < b.max.y && a.max.y > b.min.y;
+    x && y
+}
+
+fn player_animation(player: Single<(&Children, &Player)>, mut query: Query<&mut AseAnimation>) {
+    let (children, player) = &*player;
+    for child in children.iter() {
+        let Ok(mut ase_animation) = query.get_mut(*child) else {
+            continue;
+        };
+
+        match player.state {
+            PlayerState::Stand => match player.direction {
+                PlayerDirection::Left => ase_animation.animation.play_loop("idle_left"),
+                PlayerDirection::Up => ase_animation.animation.play_loop("idle_up"),
+                PlayerDirection::Right => ase_animation.animation.play_loop("idle_right"),
+                PlayerDirection::Down => ase_animation.animation.play_loop("idle_down"),
+            },
+            PlayerState::Walk => match player.direction {
+                PlayerDirection::Left => ase_animation.animation.play_loop("walk_left"),
+                PlayerDirection::Up => ase_animation.animation.play_loop("walk_up"),
+                PlayerDirection::Right => ase_animation.animation.play_loop("walk_right"),
+                PlayerDirection::Down => ase_animation.animation.play_loop("walk_down"),
+            },
+        }
     }
 }

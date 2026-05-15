@@ -3,9 +3,12 @@ use bevy::{
     ecs::schedule::{InternedScheduleLabel, ScheduleLabel},
 };
 
-use crate::game::{camera::CameraPlugin, player::PlayerPlugin, world::WorldPlugin};
+use crate::game::{
+    camera::CameraPlugin, collision::CollisionPlugin, player::PlayerPlugin, world::WorldPlugin,
+};
 
 pub mod camera;
+pub mod collision;
 pub mod core;
 pub mod player;
 pub mod world;
@@ -29,6 +32,7 @@ impl Plugin for GamePlugin {
         app.add_plugins((
             WorldPlugin::new(self.world_spawn),
             CameraPlugin::new(self.camera_spawn),
+            CollisionPlugin,
             PlayerPlugin,
         ));
     }
