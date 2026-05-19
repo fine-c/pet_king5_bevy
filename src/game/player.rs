@@ -10,6 +10,7 @@ use bevy::{
         system::{Commands, Query, Res, Single},
     },
     input::{ButtonInput, keyboard::KeyCode},
+    log::info,
     math::{Rect, Vec2},
     sprite::Sprite,
     time::Time,
@@ -140,13 +141,68 @@ fn control_player(
         Vec2::ZERO
     };
 
+    let mut movement = direction * player.walk_speed * time.delta_secs();
+
+    let mut fix_x_blocked = false;
+    if player.direction == PlayerDirection::Left || player.direction == PlayerDirection::Right {
+        let target_x = Rect::from_center_half_size(
+            Vec2::new(position.0.x + movement.x, position.0.y),
+            PLAYER_HALF_SIZE,
+        );
+        for rect in collision_rects.iter() {
+            if intersects(target_x, rect.0) {
+                if target_x.min.y - 20. < rect.0.min.y {
+                    fix_x_blocked = true;
+                    player.direction = PlayerDirection::Down;
+                    break;
+                } else if target_x.max.y + 20. > rect.0.max.y {
+                    fix_x_blocked = true;
+                    player.direction = PlayerDirection::Up;
+                    break;
+                }
+            }
+        }
+    }
+
+    let mut fix_y_blocked = false;
+    if !fix_x_blocked
+        && (player.direction == PlayerDirection::Up || player.direction == PlayerDirection::Down)
+    {
+        let target_y = Rect::from_center_half_size(
+            Vec2::new(position.0.x + movement.x, position.0.y + movement.y),
+            PLAYER_HALF_SIZE,
+        );
+        for rect in collision_rects.iter() {
+            if intersects(target_y, rect.0) {
+                if target_y.min.x - 20. < rect.0.min.x {
+                    fix_y_blocked = true;
+                    player.direction = PlayerDirection::Left;
+                    break;
+                } else if target_y.max.x + 20. > rect.0.max.x {
+                    fix_y_blocked = true;
+                    player.direction = PlayerDirection::Right;
+                    break;
+                }
+            }
+        }
+    }
+
+    if fix_x_blocked || fix_y_blocked {
+        let direction = match player.direction {
+            PlayerDirection::Left => Vec2::new(-1., 0.),
+            PlayerDirection::Up => Vec2::new(0., 1.),
+            PlayerDirection::Right => Vec2::new(1., 0.),
+            PlayerDirection::Down => Vec2::new(0., -1.),
+        };
+
+        movement = direction * player.walk_speed * time.delta_secs();
+    }
+
     player.state = if direction == Vec2::ZERO {
         PlayerState::Stand
     } else {
         PlayerState::Walk
     };
-
-    let movement = direction * player.walk_speed * time.delta_secs();
     position.0 = apply_collision(position.0, movement, &collision_rects);
 }
 
